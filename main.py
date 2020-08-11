@@ -7,7 +7,7 @@ from matplotlib.font_manager import FontProperties
 
 # start virtual machine to run TIKA
 tika.initVM()
-parsed = parser.from_file('data\\test2.pdf')
+parsed = parser.from_file('data\\test3.pdf')
 content = parsed["content"]
 
 # Create ignore list
@@ -15,14 +15,13 @@ katakana_chart = "ァアィイゥウェエォオカガキギクグケゲコゴ�
                  "マミムメモャヤュユョヨラリルレロヮワヰヱヲンヴヵヶヽヾー"
 hiragana_chart = "ぁあぃいぅうぇえぉおかがきぎくぐけげこごさざしじすずせぜそぞただちぢっつづてでとどなにぬねのはばぱひびぴふぶぷへべぺほぼ" \
                  "ぽまみむめもゃやゅゆょよらりるれろゎわゐゑをんゔゕゖゝゞ"
-punctuation = '、。「」…―！？』『※【】≪≫・'
-numbers = '0123456789'
+punctuation = '、。「」…―！？』『※【】≪≫・｜“”Оγω☆♯★≠А《》♪βα×ΩΣθ■〜▼�△'
 latin = str([chr(65280 + x) for x in range(0, 91)])
 
 # filter and sort
 words = content.split()
-stop_words = katakana_chart + hiragana_chart + punctuation + string.ascii_letters + numbers + latin
-words = [word for word in words if word not in stop_words]
+stop_words = katakana_chart + hiragana_chart + punctuation + string.ascii_letters + latin
+words = [w for w in words if (w not in stop_words) and (not w.isnumeric()) and (len(w) == 1)]
 labels, counts = np.unique(words, return_counts=True)
 
 indSort = np.argsort(counts)[::-1]
@@ -33,7 +32,22 @@ ordered_labels = labels[indSort]
 print('There are {:d} unique Kanji'.format(len(counts)))
 percentages = ordered_counts/np.sum(counts)*100
 cum_percent = np.cumsum(percentages)
+print('The first {:d} kanji make up 50% of total uses.\n'
+      'The first {:d} kanji make up 90% of total uses\n'
+      '{:d} appear only one time'.format(np.argwhere(cum_percent > 50)[0, 0],
+                                         np.argwhere(cum_percent > 90)[0, 0],
+                                         np.sum([1 for i in ordered_counts if i == 1])))
+i = 0
+plt.figure(i)
+plt.plot(cum_percent)
+plt.grid()
+i += 1
+plt.figure(i)
+plt.plot(percentages)
+plt.grid()
 
+i += 1
+plt.figure(i)
 index_max = 50
 print('These {} Kanji represent {:.1f}% of the total occurrences'.format(index_max, cum_percent[index_max]))
 indexes = np.arange(len(ordered_labels[:index_max]))
